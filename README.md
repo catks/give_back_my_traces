@@ -1,28 +1,79 @@
 # GiveBackMyTraces
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/give_back_my_traces`. To experiment with that code, run `bin/console` for an interactive prompt.
+GiveBackMyTraces let you discover those sneaky errors in ruby apps.
 
-TODO: Delete this and the text above, and describe your gem
+## Usage
 
-## Installation
+Suppose you have the following code in your rails app:
 
-Add this line to your application's Gemfile:
+```ruby
+class ApplicationController < ActionController::Base
+  rescue_from 'BaseError' do
+    head 422
+  end
+end
+```
+
+After a huge refactoring or upgrade you may face some errors like:
+
+```shell
+❯ rspec spec/requests/my_action_spec.rb
+F
+
+Failures:
+
+  1) MyActions GET /index returns http success
+     Failure/Error: expect(response).to have_http_status(:success)
+       expected the response to have a success status code (2xx) but it was 422
+     # ./spec/requests/my_action_spec.rb:7:in `block (3 levels) in <top (required)>'
+
+Finished in 0.07235 seconds (files took 0.80333 seconds to load)
+1 example, 1 failure
+
+....
+```
+
+And then to discover the real error you may need to start debugging to find the real issue.
+
+Enter `give_back_my_traces`, just add in your Gemfile, eg:
 
 ```ruby
 gem 'give_back_my_traces'
 ```
 
-And then execute:
+And add `GBMT.init` in your spec_helper:
 
-    $ bundle install
+```ruby
+require 'give_back_my_traces'
 
-Or install it yourself as:
+RSpec.configure do |config|
+  config.around(:each) do |example|
+    GBMT.init
 
-    $ gem install give_back_my_traces
+    example.call
 
-## Usage
+    GBMT.clear
+  end
+```
 
-TODO: Write usage instructions here
+And then you can see the errors running it with some GBMT envs:
+
+```
+GBMT_ENABLE=1 rspec spec/requests/my_action_spec.rb 2>&1 | head -10
+----------------------------------------------------
+ Error: BaseError
+ Message: Test error
+ Backtrace:
+   /home/foo/projetos/test-gbmt/app/controllers/my_action_controller.rb:5:in `index'
+   /home/foo/.rbenv/versions/3.0.4/lib/ruby/gems/3.0.0/gems/actionpack-7.0.4/lib/action_controller/metal/basic_implicit_render.rb:6:in `send_action'
+   /home/foo/.rbenv/versions/3.0.4/lib/ruby/gems/3.0.0/gems/actionpack-7.0.4/lib/abstract_controller/base.rb:215:in `process_action'
+   /home/foo/.rbenv/versions/3.0.4/lib/ruby/gems/3.0.0/gems/actionpack-7.0.4/lib/action_controller/metal/rendering.rb:53:in `process_action'
+   /home/foo/.rbenv/versions/3.0.4/lib/ruby/gems/3.0.0/gems/actionpack-7.0.4/lib/abstract_controller/callbacks.rb:234:in `block in process_action'
+   ...
+
+```
+
+See more in the examples folder.
 
 ## Development
 
@@ -32,7 +83,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/give_back_my_traces.
+Bug reports and pull requests are welcome on GitHub at https://github.com/catks/give_back_my_traces.
 
 ## License
 
