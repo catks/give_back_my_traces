@@ -2,6 +2,7 @@
 
 require_relative "give_back_my_traces/version"
 require_relative "give_back_my_traces/errors_collection"
+require_relative "give_back_my_traces/tracker"
 require_relative "gbmt"
 
 # Main module to handle GBMT api
@@ -22,18 +23,25 @@ require_relative "gbmt"
 # GiveBackMyTraces.errors.pretty_print # Print errors
 module GiveBackMyTraces
   class Error < StandardError; end
-
   DEFAULT_CONFIG = {
     mode: ENV.fetch("GBMT_MODE", :normal).to_sym,
     backtrace: {
       max_lines: ENV.fetch("GBMT_BACKTRACE_MAX_LINES", 5).to_i
-    }
+    },
+    from: ENV["GBMT_BACKTRACE_FROM"] && Regexp.new(ENV["GBMT_BACKTRACE_FROM"])
   }.freeze
 
+  FROM_BACKTRACE_FILTER = lambda do |error|
+    return true if GiveBackMyTraces.config[:from].nil?
+    return false unless error.backtrace
+
+    error.backtrace.first.match?(GiveBackMyTraces.config[:from])
+  end
+
   TRACKERS = {
-    normal: ->(error) { warn GiveBackMyTraces::Helpers.pretty_format(error) },
-    silent: ->(_) {},
-    verbose: ->(error) { warn GiveBackMyTraces::Helpers.pretty_format(error, verbose: true) }
+    normal: Tracker.new(filters: [FROM_BACKTRACE_FILTER]),
+    silent: Tracker::NO_OP,
+    verbose: Tracker.new(filters: [FROM_BACKTRACE_FILTER], verbose: true)
   }.freeze
 
   class << self

@@ -48,18 +48,21 @@ require 'give_back_my_traces'
 
 RSpec.configure do |config|
   config.around(:each) do |example|
-    GBMT.init
+    GBMT.init(
+      from: ENV.fetch("GBMT_BACKTRACE_FROM", Rails.root.to_s) # By default only print errors with a backtrace from your app
+    )
 
     example.call
 
     GBMT.clear
+    GBMT.stop
   end
 ```
 
 And then you can see the errors running it with some GBMT envs:
 
 ```
-GBMT_ENABLE=1 rspec spec/requests/my_action_spec.rb 2>&1 | head -10
+GBMT_ENABLE=1 rspec spec/requests/my_action_spec.rb
 ----------------------------------------------------
  Error: BaseError
  Message: Test error
@@ -72,6 +75,10 @@ GBMT_ENABLE=1 rspec spec/requests/my_action_spec.rb 2>&1 | head -10
    ...
 
 ```
+
+Also you can filter erros by their backtrace with `GBMT_BACKTRACE_FROM`, it could be any string/regexp that matches the first line in the backtrace, eg:
+
+`GBMT_ENABLE=1 GBMT_BACKTRACE_FROM='controllers/my_action_controller' rspec spec/requests/my_action_spec.rb`
 
 See more in the examples folder.
 
