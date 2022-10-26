@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
-require "give_back_my_traces"
 require "pry-byebug"
 require_relative "support/error_helper"
+
+require "simplecov"
+SimpleCov.start
+
+require "give_back_my_traces"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

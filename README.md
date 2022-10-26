@@ -1,5 +1,9 @@
 # GiveBackMyTraces
 
+![](https://github.com/catks/give_back_my_traces/workflows/Ruby/badge.svg?branch=master)
+[![Maintainability](https://api.codeclimate.com/v1/badges/698f7f3d0cb19d95a2e9/maintainability)](https://codeclimate.com/github/catks/give_back_my_traces/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/698f7f3d0cb19d95a2e9/test_coverage)](https://codeclimate.com/github/catks/give_back_my_traces/test_coverage)
+
 GiveBackMyTraces let you discover those sneaky errors in ruby apps.
 
 ## Usage
