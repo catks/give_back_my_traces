@@ -21,5 +21,19 @@ jobs:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true
         cache-version: 1
+
+    - name: Setup Code Climate test-reporter
+      if: ${{ matrix.ruby-version }} == '2.7'
+      run: |
+        curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+        chmod +x ./cc-test-reporter
+        ./cc-test-reporter before-build
+
     - name: Run the default task
       run: bundle exec rake
+
+    - name: Publish code coverage
+      if: ${{ matrix.ruby-version }} == '2.7'
+      run: |
+        export GIT_BRANCH="${GITHUB_REF/refs\/heads\//}"
+        ./cc-test-reporter after-build -r ${{secrets.CC_TEST_REPORTER_ID}}
